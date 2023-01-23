@@ -36,6 +36,7 @@ public class PlayerActor : Actor, IFilterLoggerTarget {
         int targetVelocityX = moveDirection * PlayerCore.MoveSpeed;
         int maxSpeedChange = (int) (acceleration * Game.Instance.FixedDeltaTime);
         velocityX = Mathf.MoveTowards(velocityX, targetVelocityX, maxSpeedChange);
+        print($"{velocityX}, {velocityY}");
     }
 
     public void Land()
