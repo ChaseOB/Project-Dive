@@ -21,6 +21,9 @@ public class PlayerActor : Actor, IFilterLoggerTarget {
     private bool _hitWallCoroutineRunning;
     private float _hitWallPrevSpeed;
 
+
+    private Vector3 prevPos;
+
     private void OnEnable()
     {
         Room.RoomTransitionEvent += OnRoomTransition;
@@ -31,12 +34,18 @@ public class PlayerActor : Actor, IFilterLoggerTarget {
         Room.RoomTransitionEvent -= OnRoomTransition;
     }
 
+    private void Update() {
+        Vector3 pos = this.transform.position;
+        float vel = Vector3.Magnitude(prevPos - pos) / Time.deltaTime;
+        prevPos = pos;
+        print(vel / Vector3.Magnitude(velocity));
+    }
+
     #region Movement
     public void UpdateMovementX(int moveDirection, int acceleration) {
         int targetVelocityX = moveDirection * PlayerCore.MoveSpeed;
         int maxSpeedChange = (int) (acceleration * Game.Instance.FixedDeltaTime);
         velocityX = Mathf.MoveTowards(velocityX, targetVelocityX, maxSpeedChange);
-        print($"{velocityX}, {velocityY}");
     }
 
     public void Land()
