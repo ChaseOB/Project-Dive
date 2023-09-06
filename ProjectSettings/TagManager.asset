@@ -15,10 +15,10 @@ TagManager:
   - Light
   - Velocity
   - PlayerLight
-  - 
-  - 
-  - 
-  - 
+  - ParticleCollision
+  - PlayerDeathParticles
+  - Ground
+  - Waterfall
   - 
   - 
   - 
@@ -53,6 +53,15 @@ TagManager:
   - name: Lava
     uniqueID: 1220263349
     locked: 0
+  - name: Vines
+    uniqueID: 1411810703
+    locked: 0
   - name: Ground
     uniqueID: 3841973759
+    locked: 0
+  - name: Above Ground Decor
+    uniqueID: 216755431
+    locked: 0
+  - name: Firefly
+    uniqueID: 437785363
     locked: 0

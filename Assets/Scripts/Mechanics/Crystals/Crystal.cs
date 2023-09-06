@@ -5,30 +5,41 @@ using System.Collections;
 using Phys;
 using Helpers;
 using UnityEngine;
+using World;
 
 
 namespace Mechanics {
-    public class Crystal : Solid, IFilterLoggerTarget {
+    public class Crystal : Solid, IResettable, IFilterLoggerTarget {
         private bool _broken = false;
         public double rechargeTime = 1;
         
-        private SpriteRenderer _mySR;
+        private SpriteRenderer _sr;
+        private ParticleSystem _particleSystem;
+        private Color _dischargedColor = new(0.5f, 0.5f, 0.5f, 0.5f);
         
         private UnityEngine.Rendering.Universal.Light2D _light;
-        private float _lightIntensityStart;
-        [SerializeField] private bool flicker;
+        private CrystalAnimationStateManager _animator;
+        private float _lightIntensityStart = 5f;
         [SerializeField] private float amplitude;
         [SerializeField] private float frequency;
+        
+        private IEnumerator _breakCoroutine;
+        private Floater _floater;
 
-        new void Start() {
-            _mySR = GetComponent<SpriteRenderer>();
-            _light = GetComponentInChildren<UnityEngine.Rendering.Universal.Light2D>();
-            _lightIntensityStart = _light.intensity;
-            base.Start();
+        public bool unlocked = false;
+
+        private void OnEnable()
+        {
+            _sr = GetComponentInChildren<SpriteRenderer>(includeInactive:true);
+            _floater = GetComponentInChildren<Floater>(includeInactive:true);
+            _animator = GetComponentInChildren<CrystalAnimationStateManager>(includeInactive:true);
+            _light = GetComponentInChildren<UnityEngine.Rendering.Universal.Light2D>(includeInactive:true);
+            _particleSystem = GetComponentInChildren<ParticleSystem>();
+            if (!unlocked) Discharge();
         }
 
         private void Update() {
-            if (flicker && !_broken) Flicker();
+            if (!_broken) Flicker();
         }
 
         public override bool Collidable()
@@ -38,7 +49,6 @@ namespace Mechanics {
 
         public override bool OnCollide(PhysObj p, Vector2 direction)
         {
-            FilterLogger.Log(this, $"Crystal Collided with {p}");
             if (!_broken)
             {
                 ICrystalResponse response = p.GetComponent<ICrystalResponse>();
@@ -57,21 +67,41 @@ namespace Mechanics {
         }
 
         public void Break() {
-            _broken = true;
-            StartCoroutine(BreakCoroutine());
+            _breakCoroutine = BreakCoroutine();
+            StartCoroutine(_breakCoroutine);
         }
 
         public IEnumerator BreakCoroutine() {
-            _mySR.color = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-            _light.intensity = 0;
-            GetComponent<Floater>().enabled = false;
+            //This eventually calls OnBounceAnimationEnd once the animation is done.
+            _broken = true;
+            _particleSystem.Emit(15);
+            _animator.Play(CrystalAnimations.BOUNCE);
             for (double i = 0; i < rechargeTime; i += Game.Instance.DeltaTime) {
                 yield return null;
             }
-            _mySR.color = Color.white;
+            Recharge();
+        }
+        
+        public void OnBounceAnimationEnd()
+        {
+            Discharge();
+            _animator.Play(CrystalAnimations.IDLE);
+        }
+
+        void Discharge()
+        {
+            _broken = true;
+            _sr.color = _dischargedColor;
+            _light.intensity = 0;
+            _floater.enabled = false;
+        }
+
+        void Recharge()
+        {
+            _sr.color = Color.white;
             _broken = false;
             _light.intensity = _lightIntensityStart;
-            GetComponent<Floater>().enabled = true;
+            _floater.enabled = true;
         }
 
         public LogLevel GetLogLevel()
@@ -81,6 +111,27 @@ namespace Mechanics {
 
         public void Flicker() {
             _light.intensity = _lightIntensityStart + Mathf.Sin (Game.Instance.Time * Mathf.PI * frequency+transform.position.x*0.1f) * amplitude;
+        }
+
+        public void Reset()
+        {
+            if (_breakCoroutine != null) StopCoroutine(_breakCoroutine);
+            if (unlocked)
+            {
+                _animator.Play(CrystalAnimations.IDLE);
+                Recharge();
+            }
+        }
+
+        public bool CanReset()
+        {
+            return gameObject != null && gameObject.activeSelf && _animator != null && _animator.gameObject.activeSelf && unlocked;
+        }
+
+        public void Unlock()
+        {
+            unlocked = true;
+            Recharge();
         }
     }
 }

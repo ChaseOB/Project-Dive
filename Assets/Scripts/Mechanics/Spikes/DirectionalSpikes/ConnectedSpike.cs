@@ -7,6 +7,8 @@ namespace Mechanics
 {
     public class ConnectedSpike : DirectionalSpike
     {
+        [SerializeField] private float _dischargeOffsetTime;
+        
         public override void Discharge(HashSet<Spike> dogoDisabledSpikes)
         {
             if (!Charged) return;
@@ -19,11 +21,11 @@ namespace Mechanics
 
         public void DischargeNext(HashSet<Spike> dogoDisabledSpikes, Vector3 offset, int index)
         {
-            Action dischargeAnimation = () => StartCoroutine(Helper.DelayAction(index * 0.025f, DischargeAnimation));
+            Action dischargeAnimation = () => StartCoroutine(Helper.DelayAction(index * _dischargeOffsetTime, DischargeAnimation));
             DischargeLogic(dogoDisabledSpikes, dischargeAnimation);
             
             Vector3 checkPos = transform.position + offset;
-            ConnectedSpike s = Helper.OnComponent<ConnectedSpike>(checkPos);
+            ConnectedSpike s = Helper.OnComponent<ConnectedSpike>(checkPos, LayerMask.GetMask("Interactable"));
             if (s != null && s.Charged)
             {
                 s.DischargeNext(dogoDisabledSpikes, offset, index+1);

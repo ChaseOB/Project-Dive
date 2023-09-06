@@ -1,5 +1,5 @@
-﻿using System.Buffers.Text;
-using System.Timers;
+﻿using System;
+
 using Core;
 
 namespace Helpers
@@ -14,11 +14,13 @@ namespace Helpers
     public class GameTimer : IFilterLoggerTarget
     {
         public float TimerValue { get; private set; }
-        protected float _duration { get; }
+        protected float _duration { get; private set; }
         private string _name;
         private bool _paused;
 
         private bool _active;
+
+        public event Action OnFinished;
 
         internal GameTimer(float duration, string name)
         {
@@ -95,10 +97,17 @@ namespace Helpers
             }
         }
 
-        internal void Reset()
+        public static void Reset(GameTimer timer, float newDuration = -1)
         {
-            TimerValue = _duration;
-            _active = true;
+            if (timer != null)
+            {
+                timer.Reset();
+            }
+
+            if (newDuration > 0 && timer != null)
+            {
+                timer._duration = newDuration;
+            }
         }
 
         protected virtual void Update()
@@ -107,6 +116,11 @@ namespace Helpers
             {
                 TimerValue -= Game.Instance.DeltaTime;
                 FilterLogger.Log(this, $"{_name}: {TimerValue}");
+
+                if (Finished())
+                {
+                    OnFinished?.Invoke();
+                }
             }
 
         }
@@ -119,8 +133,13 @@ namespace Helpers
                 FilterLogger.Log(this, $"{_name}: {TimerValue}");
             }
         }
+        protected void Reset()
+        {
+            TimerValue = _duration;
+            _active = true;
+        }
 
-        internal bool Finished()
+        protected bool Finished()
         {
             return TimerValue <= 0;
         }

@@ -12,7 +12,7 @@ namespace Player
 
             public override void Enter(PlayerStateInput i)
             {
-                PlayerAnim.Play(PlayerAnimations.FREEFALL);
+                PlayAnimation(PlayerAnimations.JUMP_INIT);
                 if (!Input.jumpedFromGround)
                 {
                     _jumpCoyoteTimer = GameTimer.StartNewTimer(PlayerCore.JumpCoyoteTime, "Jump Coyote Timer");
@@ -21,15 +21,21 @@ namespace Player
 
             public override void JumpPressed()
             {
-                base.JumpPressed();
                 TimerState coyoteState = GameTimer.GetTimerState(_jumpCoyoteTimer);
                 if (coyoteState == TimerState.Running)
                 {
                     JumpFromGround();
-                }
-                else if (Input.canDoubleJump)
+                    base.JumpPressed();
+                    return;
+                } else if (Input.canDoubleJump)
                 {
                     DoubleJump();
+                    return;
+                }
+                
+                else
+                {
+                    base.JumpPressed();
                 }
             }
 
@@ -52,7 +58,7 @@ namespace Player
             {
                 base.SetGrounded(isGrounded, isMovingUp);
                 if (!isMovingUp && isGrounded) {
-                    PlayerAnim.Play(PlayerAnimations.LANDING);
+                    PlayAnimation(PlayerAnimations.LANDING);
                     MySM.Transition<Grounded>();
                 }
             }
@@ -60,12 +66,12 @@ namespace Player
             public override void MoveX(int moveDirection)
             {
                 UpdateSpriteFacing(moveDirection);
-                PlayerActions.UpdateMovementX(moveDirection, PlayerCore.MaxAirAcceleration);
+                Actor.UpdateMovementX(moveDirection, PlayerCore.MaxAirAcceleration);
             }
 
             public override void FixedUpdate()
             {
-                PlayerActions.Fall();
+                Actor.Fall();
                 GameTimer.FixedUpdate(_jumpCoyoteTimer);
             }
         }

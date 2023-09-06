@@ -8,11 +8,12 @@ using UnityEngine;
 
 namespace Phys {
     public abstract class Actor : PhysObj {
-
+        
         [SerializeField, Foldout("Gravity")] protected int GravityDown;
         [SerializeField, Foldout("Gravity")] protected int GravityUp;
         [SerializeField, Foldout("Gravity")] protected int MaxFall;
         public bool IsMovingUp => velocityY >= 0;
+
         /// <summary>
         /// Moves this actor a specified number of pixels.
         /// </summary>
@@ -38,7 +39,7 @@ namespace Phys {
             return false;
         }
 
-        public void Fall() {
+        public virtual void Fall() {
             velocityY = Math.Max(MaxFall, velocityY + EffectiveGravity() * Game.Instance.FixedDeltaTime);
         }
 
@@ -47,7 +48,7 @@ namespace Phys {
             return velocityY < MaxFall;
         }
 
-        private int EffectiveGravity()
+        protected int EffectiveGravity()
         {
             return (velocityY > 0 ? GravityUp : GravityDown);
         }
@@ -68,6 +69,11 @@ namespace Phys {
         {
             GravityDown *= -1;
             GravityUp *= -1;
+        }
+
+        public void ApplyVelocity(Vector2 v)
+        {
+            velocity += v;
         }
     }
 }

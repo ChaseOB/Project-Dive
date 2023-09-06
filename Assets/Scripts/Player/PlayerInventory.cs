@@ -15,9 +15,11 @@ public class PlayerInventory : Collector, IFilterLoggerTarget
     public delegate void HandleCollectibleAdd(string id, int number);
     public event HandleCollectibleAdd OnCollectibleAdded;
 
+    [SerializeField] private int debugFirefliesCollected = 0;
+    
     public LogLevel GetLogLevel()
     {
-        return LogLevel.Info;
+        return LogLevel.Error;
     }
 
     public override void OnCollectFinished(Collectible collectible)
@@ -25,16 +27,16 @@ public class PlayerInventory : Collector, IFilterLoggerTarget
         AddItem(collectible.ID);
     }
 
-    public void AddItem(string id)
+    public void AddItem(string id, int numtoAdd = 1)
     {
         if (!itemQuantities.ContainsKey(id))
         {
             itemQuantities.Add(id, 0);
         }
-        itemQuantities[id]++;
+        itemQuantities[id] += numtoAdd;
 
-        OnCollectibleAdded?.Invoke(id, itemQuantities[id]);
-        FilterLogger.Log(this, $"Player Has {itemQuantities[id]} {id}'s");
+        OnCollectibleAdded?.Invoke(id, itemQuantities[id] + debugFirefliesCollected);
+        FilterLogger.Log(this, $"Player Has {itemQuantities[id] + debugFirefliesCollected} {id}'s");
     }
 
     public int NumCollectibles(string id)
@@ -43,6 +45,8 @@ public class PlayerInventory : Collector, IFilterLoggerTarget
         {
             return 0;
         }
+        
+        if (id == Firefly.s_ID) return itemQuantities[id] + debugFirefliesCollected;
 
         return itemQuantities[id];
     }

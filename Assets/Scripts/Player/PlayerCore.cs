@@ -11,7 +11,8 @@ namespace Player
     [RequireComponent(typeof(PlayerActor))]
     [RequireComponent(typeof(PlayerSpawnManager))]
     [RequireComponent(typeof(PlayerStateMachine))]
-    [RequireComponent(typeof(IInputController))]
+    [RequireComponent(typeof(PlayerInputController))]
+    [RequireComponent(typeof(PlayerScreenShakeActivator))]
     public class PlayerCore : Singleton<PlayerCore>
     {
         #region Player Properties
@@ -57,7 +58,11 @@ namespace Player
         public static int DiveVelocity => Instance.diveVelocity;
 
         [SerializeField] private int diveDeceleration;
-        public static int DiveDeceleration => Instance.diveDeceleration;
+        public static int DiveDeceleration
+        {
+            get => Instance.diveDeceleration;
+            set => Instance.diveDeceleration = value;
+        }
 
         [Foldout("Dogo", true)]
         [SerializeField] private float dogoJumpHeight;
@@ -104,21 +109,26 @@ namespace Player
 
         [SerializeField, Range(0f, 1f)] private float roomTransitionVCutY = 0.5f;
         public static float RoomTransistionVCutY => Instance.roomTransitionVCutY;
+        
+        [SerializeField] private float deathTime;
+        public static float DeathTime => Instance.deathTime;
 
         #endregion
 
         public static PlayerStateMachine StateMachine { get; private set; }
-        public static IInputController Input { get; private set; }
+        public static PlayerInputController Input { get; private set; }
         public static PlayerActor Actor { get; private set; }
         public static PlayerSpawnManager SpawnManager { get; private set; }
+        public static PlayerScreenShakeActivator MyScreenShakeActivator { get; private set; }
 
         private void Awake()
         {
-            InitializeSingleton();
+            InitializeSingleton(false); //L: Don't make player persistent, bc then there'll be multiple players OO
             StateMachine = gameObject.GetComponent<PlayerStateMachine>();
             Input = gameObject.GetComponent<PlayerInputController>();
             Actor = gameObject.GetComponent<PlayerActor>();
             SpawnManager = gameObject.GetComponent<PlayerSpawnManager>();
+            MyScreenShakeActivator = gameObject.GetComponent<PlayerScreenShakeActivator>();
 
             //gameObject.AddComponent<PlayerCrystalResponse>();
             //gameObject.AddComponent<PlayerSpikeResponse>();

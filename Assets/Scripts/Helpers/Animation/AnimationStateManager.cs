@@ -15,21 +15,27 @@ namespace Helpers.Animation
 
         public abstract Dictionary<T, string> Animations { get; }
 
-        public Animator Animator => _animator;
-
-        private void Awake()
+        public Animator Animator
         {
-            _animator = GetComponent<Animator>();
-            Debug.Log(_animator);
+            get
+            {
+                if (_animator == null) return GetComponentInChildren<Animator>(includeInactive:true);
+                return _animator;
+            }
         }
 
-        public void Play(T newAnimation)
+        private void OnEnable()
+        {
+            _animator = GetComponentInChildren<Animator>(includeInactive: true);
+        }
+
+        public virtual void Play(T newAnimation)
         {
             string newStateStr = GetAnimationStr(newAnimation);
 
             if (newStateStr != null)
             {
-                _animator.Play(newStateStr);
+                Animator.Play(newStateStr);
                 _currentState = newStateStr;
             }
         }

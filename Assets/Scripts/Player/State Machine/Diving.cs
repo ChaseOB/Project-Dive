@@ -10,11 +10,26 @@ namespace Player
         {
             public override void Enter(PlayerStateInput i)
             {
-                PlayerAnim.Play(PlayerAnimations.DIVING);
-                PlayerActions.Dive();
+                PlayAnimation(PlayerAnimations.DIVING);
+                Actor.Dive();
                 Input.canDive = false;
                 Input.canJumpCut = false;
                 Input.dogoDisabledSpikes = new HashSet<Spike>();
+                
+                // var divePEmission = MySM._diveParticles.emission;
+                // divePEmission.enabled = true;
+                
+                MySM._screenshakeActivator.ScreenShakeContinuousOn(MySM._screenshakeActivator.DiveData);
+            }
+
+            public override void Exit(PlayerStateInput i)
+            {
+                MySM._screenshakeActivator.ScreenShakeContinuousOff(MySM._screenshakeActivator.DiveData);
+                // var divePEmission = MySM._diveParticles.emission;
+                // divePEmission.enabled = false;
+                base.Exit(i);
+                
+                //MySM._drillEmitter.Stop();
             }
 
             public override void JumpPressed()
@@ -37,12 +52,12 @@ namespace Player
             }
 
             public override void FixedUpdate() {
-                PlayerActions.UpdateWhileDiving();
+                Actor.UpdateWhileDiving();
             }
 
             public override void MoveX(int moveDirection)
             {
-                PlayerActions.UpdateMovementX(moveDirection, PlayerCore.MaxAirAcceleration);
+                Actor.UpdateMovementX(moveDirection, PlayerCore.MaxAirAcceleration);
                 UpdateSpriteFacing(moveDirection);
             }
         }
